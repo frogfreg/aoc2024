@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -14,54 +15,25 @@ func main() {
 	}
 
 	memory := string(data)
+
+	rgx := regexp.MustCompile(`mul\((\d?\d?\d?,\d?\d?\d?)\)`)
+
+	matches := rgx.FindAllStringSubmatch(memory, -1)
 	sum := 0
 
-	left := 0
-	right := 0
+	for _, m := range matches {
+		digits := strings.Split(m[1], ",")
 
-	for {
-		left = strings.Index(memory, "mul(")
-		right = strings.Index(memory, ")")
-
-		if left == -1 || right == -1 {
-			break
-		}
-
-		if right < left {
-			memory = memory[left+4:]
-			continue
-		}
-
-		fmt.Printf("memory: %v, left: %v, right: %v\n", memory, left, right)
-
-		digits := strings.Split(memory[left+4:right], ",")
-		if len(digits) != 2 {
-			memory = memory[left+4:]
-			continue
-		}
-
-		leftDigit, rightDigit := digits[0], digits[1]
-		leftNum, err := strconv.Atoi(leftDigit)
+		leftNum, err := strconv.Atoi(digits[0])
 		if err != nil {
-			memory = memory[left+4:]
-			continue
+			panic(err)
 		}
-		rightNum, err := strconv.Atoi(rightDigit)
+		rightNum, err := strconv.Atoi(digits[1])
 		if err != nil {
-			memory = memory[left+4:]
-			continue
+			panic(err)
 		}
-
-		if leftNum > 999 || rightNum > 999 {
-			memory = memory[left+4:]
-			continue
-		}
-
-		fmt.Printf("digits: %#v, %v * %v= %v\n", digits, leftNum, rightNum, leftNum*rightNum)
 
 		sum += leftNum * rightNum
-
-		memory = memory[right+1:]
 	}
 
 	fmt.Println(sum)
